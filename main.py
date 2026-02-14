@@ -89,7 +89,64 @@ while True:
     for r in results:
         boxes = r.boxes
         if boxes is None:
-            continue
+            continue  
+
+
+for box in boxes:
+            cls = int(box.cls[0])
+            x1, y1, x2, y2 = map(int, box.xyxy[0])
+
+            if cls in CLIMBABLE_CLASSES:
+                furniture_boxes.append((x1, y1, x2, y2))
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 3)
+                cv2.rectangle(frame,
+                              (x1 + EDGE_MARGIN, y1 + EDGE_MARGIN),
+                              (x2 - EDGE_MARGIN, y2 - EDGE_MARGIN),
+                              (0, 255, 0), 2)
+
+            if cls == PERSON_CLASS:
+                cx = int((x1 + x2) / 2)
+                cy = int((y1 + y2) / 2)
+                baby_centers.append((cx, cy))
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 255), 3)
+                cv2.circle(frame, (cx, cy), 6, (0, 255, 255), -1)
+
+    danger_detected = False
+
+    for (cx, cy) in baby_centers:
+        for (fx1, fy1, fx2, fy2) in furniture_boxes:
+            if is_in_edge_zone(cx, cy, fx1, fy1, fx2, fy2, EDGE_MARGIN):
+                danger_detected = True
+
+    if danger_detected:
+        cv2.putText(frame,
+                    "WARNING: Baby Near Furniture Edge!",
+                    (50, 70),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    1.2,
+                    (0, 0, 255),
+                    4)
+
+        start_alarm()
+
+        current_time = time.time()
+        if current_time - last_snapshot_time > snapshot_interval:
+            timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            filename = os.path.join(LOG_FOLDER, f"danger_{timestamp}.jpg")
+            cv2.imwrite(filename, frame)
+            print("Snapshot saved:", filename)
+            last_snapshot_time = current_time
+    else:
+        stop_alarm()
+
+    cv2.imshow("Smart Baby Safety Monitor", frame)
+
+    if cv2.waitKey(1) == 27:
+        break
+
+cap.release()
+cv2.destroyAllWindows()
+stop_alarm()
 
 
 
