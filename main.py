@@ -65,7 +65,31 @@ cap = cv2.VideoCapture(CAMERA_URL)
 
 if not cap.isOpened():
     print("Camera connection failed")
-    exit()
+    exit()  
+
+
+print("Camera connected!")
+
+cv2.namedWindow("Smart Baby Safety Monitor", cv2.WINDOW_NORMAL)
+cv2.setWindowProperty("Smart Baby Safety Monitor",
+                      cv2.WND_PROP_FULLSCREEN,
+                      cv2.WINDOW_FULLSCREEN)
+
+while True:
+    ret, frame = cap.read()
+    if not ret:
+        break
+
+    frame = cv2.resize(frame, (screen_width, screen_height))
+    results = model(frame, verbose=False)
+
+    furniture_boxes = []
+    baby_centers = []
+
+    for r in results:
+        boxes = r.boxes
+        if boxes is None:
+            continue
 
 
 
