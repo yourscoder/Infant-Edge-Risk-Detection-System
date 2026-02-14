@@ -34,21 +34,16 @@ def alarm_loop():
         winsound.Beep(1500, 400)
         winsound.Beep(1800, 400)
         time.sleep(0.2)
-///////
+///////  
+
+def start_alarm():
+    global alarm_active
+    if not alarm_active:
+        alarm_active = True
+        threading.Thread(target=alarm_loop, daemon=True).start()
 
 
 
-def play_alarm():
-    try:
-        playsound(ALARM_SOUND)
-    except Exception:
-        print("Alarm sound error")
 
 
-cap = cv2.VideoCapture(CAMERA_URL)
 
-if not cap.isOpened():
-    print("Camera connection failed")
-    exit()
-
-print("Camera connected")
